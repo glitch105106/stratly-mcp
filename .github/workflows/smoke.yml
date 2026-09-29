@@ -1,0 +1,25 @@
+name: smoke
+# Verifies the published package actually works: installs from a clean
+# checkout and runs the stdio proxy end-to-end against the live MCP endpoint
+# (initialize + tools/list through the proxy to https://stratly.us/mcp).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node bin/stratly-mcp.js --version
+      - run: npm pack --dry-run
+      - run: npm test
+        env:
+          SMOKE_TIMEOUT_MS: "45000"
